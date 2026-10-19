@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>캐릭터 스탯 카드 에디터</title>
+    <!-- 이미지 캡처를 위한 라이브러리 -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --accent-color: #d4af37; /* 골드 포인트 */
+            --text-color: #f0f0f0;
+        }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px;
+            gap: 40px;
+            margin: 0;
+        }
+        /* 왼쪽 컨트롤 패널 */
+        .control-panel {
+            background-color: var(--panel-bg);
+            padding: 30px;
+            border-radius: 12px;
+            width: 350px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #aaa;
+        }
+        input[type="text"], input[type="number"], textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        textarea { resize: vertical; height: 80px; }
+        input[type="file"] { margin-top: 5px; }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #e5c158; }
+
+        /* 오른쪽 카드 캔버스 */
+        .card-container {
+            width: 400px;
+            height: 600px;
+            background-color: #0a0a0a;
+            border: 2px solid var(--accent-color);
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+        }
+        .card-image-wrapper {
+            width: 100%;
+            height: 55%;
+            background-color: #222;
+            overflow: hidden;
+            position: relative;
+        }
+        #cardImage {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            cursor: grab;
+        }
+        .card-content {
+            padding: 20px;
+            background: linear-gradient(180deg, transparent 0%, #0a0a0a 20%);
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50%;
+            box-sizing: border-box;
+        }
+        .card-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin: 0 0 5px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        .card-class {
+            font-size: 14px;
+            color: #888;
+            margin: 0 0 15px 0;
+            letter-spacing: 2px;
+        }
+        .card-stats {
+            display: flex;
+            justify-content: space-between;
+            background-color: rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 20px; font-weight: bold; color: white; }
+        .stat-label { font-size: 12px; color: #aaa; }
+        .card-quote {
+            font-size: 14px;
+            font-style: italic;
+            color: #ccc;
+            line-height: 1.5;
+            border-left: 3px solid var(--accent-color);
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 왼쪽: 입력 폼 -->
+    <div class="control-panel">
+        <h2>캐릭터 설정</h2>
+        
+        <div class="control-group">
+            <label>일러스트 업로드</label>
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+
+        <div class="control-group">
+            <label>캐릭터 이름</label>
+            <input type="text" id="nameInput" value="엘리시온" oninput="updateCard()">
+        </div>
+
+        <div class="control-group">
+            <label>직업 / 클래스</label>
+            <input type="text" id="classInput" value="심연의 마법사" oninput="updateCard()">
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <div class="control-group" style="flex: 1;">
+                <label>공격력 (ATK)</label>
+                <input type="number" id="atkInput" value="850" oninput="updateCard()">
+            </div>
+            <div class="control-group" style="flex: 1;">
+                <label>방어력 (DEF)</label>
+                <input type="number" id="defInput" value="420" oninput="updateCard()">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>세계관 대사 (Quote)</label>
+            <textarea id="quoteInput" oninput="updateCard()">"어둠 속에서도 빛을 찾는 자만이, 진정한 진리에 도달할 수 있다."</textarea>
+        </div>
+
+        <button onclick="downloadCard()">이미지로 저장하기 💾</button>
+    </div>
+
+    <!-- 오른쪽: 완성될 카드 미리보기 -->
+    <div class="card-container" id="captureArea">
+        <div class="card-image-wrapper">
+            <!-- 기본 이미지 플레이스홀더 (어두운 회색 배경) -->
+            <img id="cardImage" style="background-color: #333;" alt="">
+        </div>
+        <div class="card-content">
+            <h1 class="card-name" id="cardName">엘리시온</h1>
+            <h2 class="card-class" id="cardClass">심연의 마법사</h2>
+            
+            <div class="card-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="cardAtk">850</div>
+                    <div class="stat-label">ATK</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="cardDef">420</div>
+                    <div class="stat-label">DEF</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">SSR</div>
+                    <div class="stat-label">등급</div>
+                </div>
+            </div>
+
+            <div class="card-quote" id="cardQuote">
+                "어둠 속에서도 빛을 찾는 자만이, 진정한 진리에 도달할 수 있다."
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 텍스트 실시간 연동 기능
+        function updateCard() {
+            document.getElementById('cardName').innerText = document.getElementById('nameInput').value;
+            document.getElementById('cardClass').innerText = document.getElementById('classInput').value;
+            document.getElementById('cardAtk').innerText = document.getElementById('atkInput').value;
+            document.getElementById('cardDef').innerText = document.getElementById('defInput').value;
+            document.getElementById('cardQuote').innerText = document.getElementById('quoteInput').value;
+        }
+
+        // 이미지 업로드 기능
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('cardImage').src = event.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 캡처하여 다운로드하는 기능 (html2canvas 사용)
+        function downloadCard() {
+            const card = document.getElementById('captureArea');
+            html2canvas(card, { scale: 2, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'my_character_card.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

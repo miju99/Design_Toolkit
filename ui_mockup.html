@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Game UI Mockup Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        .ui-panel { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .skew-ui { transform: skewX(-15deg); }
+        .skew-inner { transform: skewX(15deg); }
+        .illust-fit { width: 100%; height: 100%; object-fit: cover; } 
+        .circle-illust { width: 96px; height: 96px; border-radius: 50%; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.3); }
+        #monster-wrapper { cursor: move; transition: transform 0.1s ease-out; position: absolute; }
+    </style>
+</head>
+<body class="bg-gray-950 p-8">
+
+    <!-- 제어 패널 -->
+    <div class="mb-6 p-4 bg-gray-900 text-gray-300 rounded-lg border border-gray-700 flex flex-wrap gap-4 text-xs items-center">
+        <div>배경: <input type="file" onchange="previewFile('game-view', this, true)"></div>
+        <div>좌측캐릭: <input type="file" onchange="previewFile('char-main', this)"></div>
+        <div>파티1: <input type="file" onchange="previewFile('p1-img', this)"></div>
+        <div>파티2: <input type="file" onchange="previewFile('p2-img', this)"></div>
+        <div>몬스터: <input type="file" onchange="previewFile('monster-img', this)"></div>
+        <button onclick="saveScreen()" class="bg-cyan-700 px-4 py-1 rounded text-white font-bold ml-auto hover:bg-cyan-600">현재 화면 저장</button>
+    </div>
+
+    <!-- 인게임 화면 -->
+    <div id="game-view" class="relative w-[960px] h-[540px] bg-cover bg-center overflow-hidden border border-white/10 shadow-2xl" style="background-image: url('https://placehold.co/960x540/2d3436/2d3436?text=Background');">
+        
+        <!-- 몬스터 영역 -->
+        <div id="monster-wrapper" class="z-10 flex items-center justify-center top-1/2 left-1/2">
+            <img id="monster-img" class="max-w-[400px] select-none" draggable="false">
+        </div>
+
+        <!-- 1. 좌측 상단 캐릭터 UI -->
+        <div class="absolute top-6 left-6 z-20 flex gap-4 items-center">
+            <div class="circle-illust bg-black">
+                <img id="char-main" src="https://placehold.co/200x200" class="illust-fit">
+            </div>
+            <div class="flex flex-col gap-1 mt-2">
+                <input type="text" value="CHARACTER NAME" class="bg-transparent border-none text-xl font-black italic tracking-widest text-white w-48 outline-none uppercase">
+                <div class="text-white font-bold italic tracking-widest text-lg">Lv.99</div>
+                <div class="w-64 h-4 bg-black/90 border border-white/20 skew-ui relative overflow-hidden">
+                    <div class="h-full bg-red-600 w-[85%]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 우측 상단 파티 멤버 -->
+        <div class="absolute top-6 right-6 z-20 flex flex-col gap-3">
+            <div class="flex items-center gap-3 ui-panel p-2 skew-ui">
+                <div class="w-12 h-12 overflow-hidden bg-gray-700 skew-inner border border-white/20">
+                    <img id="p1-img" src="https://placehold.co/100x100" class="illust-fit">
+                </div>
+                <input type="text" value="PARTY 1" class="bg-transparent border-none text-xs font-bold skew-inner text-white w-20 outline-none uppercase italic">
+            </div>
+            <div class="flex items-center gap-3 ui-panel p-2 skew-ui">
+                <div class="w-12 h-12 overflow-hidden bg-gray-700 skew-inner border border-white/20">
+                    <img id="p2-img" src="https://placehold.co/100x100" class="illust-fit">
+                </div>
+                <input type="text" value="PARTY 2" class="bg-transparent border-none text-xs font-bold skew-inner text-white w-20 outline-none uppercase italic">
+            </div>
+        </div>
+
+        <!-- 3. 우측 하단 스킬 아이콘 -->
+        <div class="absolute bottom-6 right-6 z-20 flex gap-3 items-end">
+            <div class="w-16 h-16 ui-panel border-l-4 border-blue-400 overflow-hidden cursor-pointer" onclick="document.getElementById('atk-input').click()">
+                <input type="file" id="atk-input" class="hidden" onchange="previewFile('skill-atk', this)">
+                <img id="skill-atk" src="https://placehold.co/100x100/1e293b/white?text=ATK" class="illust-fit">
+            </div>
+            <div class="w-16 h-16 ui-panel border-l-4 border-yellow-500 overflow-hidden cursor-pointer skew-ui" onclick="document.getElementById('skill-input').click()">
+                <input type="file" id="skill-input" class="hidden" onchange="previewFile('skill-spec', this)">
+                <img id="skill-spec" src="https://placehold.co/100x100/78350f/white?text=SKILL" class="illust-fit skew-inner">
+            </div>
+            <div class="w-20 h-20 ui-panel rounded-full border-4 border-red-500 overflow-hidden cursor-pointer shadow-[0_0_15px_rgba(239,68,68,0.5)]" onclick="document.getElementById('ult-input').click()">
+                <input type="file" id="ult-input" class="hidden" onchange="previewFile('skill-ult', this)">
+                <img id="skill-ult" src="https://placehold.co/200x200/991b1b/white?text=ULT" class="illust-fit">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scale = 1;
+        const monster = document.getElementById('monster-wrapper');
+        monster.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            scale += e.deltaY * -0.001;
+            scale = Math.min(Math.max(0.2, scale), 3);
+            monster.style.transform = `scale(${scale})`;
+        });
+
+        let isDown = false;
+        monster.onmousedown = () => isDown = true;
+        window.onmouseup = () => isDown = false;
+        window.onmousemove = (e) => {
+            if(!isDown) return;
+            const rect = document.getElementById('game-view').getBoundingClientRect();
+            monster.style.left = (e.clientX - rect.left) + 'px';
+            monster.style.top = (e.clientY - rect.top) + 'px';
+        };
+
+        function previewFile(id, input, bg) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if(bg) document.getElementById(id).style.backgroundImage = `url('${e.target.result}')`;
+                else document.getElementById(id).src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function saveScreen() {
+            html2canvas(document.querySelector("#game-view")).then(c => {
+                const link = document.createElement('a');
+                link.download = 'game-mockup.png';
+                link.href = c.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

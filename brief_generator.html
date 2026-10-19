@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Character Design Brief Generator Ultimate</title>
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --card-bg: #1f2833;
+            --accent-color: #66fcf1;
+            --accent-dim: rgba(102, 252, 241, 0.15);
+            --text-primary: #edf5e1;
+            --text-secondary: #c5c6c7;
+            --border-color: rgba(102, 252, 241, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 35px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+
+        header {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            color: var(--accent-color);
+            letter-spacing: -0.5px;
+        }
+
+        header .doc-id {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+
+        .brief-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 25px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .field-box {
+            background: rgba(11, 12, 16, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .field-box.roll {
+            animation: pulse 0.25s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.99); opacity: 0.8; }
+            50% { transform: scale(1.01); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .value {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            word-break: keep-all;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .generate-btn {
+            flex: 2;
+            background: var(--accent-color);
+            color: #0b0c10;
+            font-size: 1rem;
+        }
+
+        .generate-btn:hover {
+            background: #45a29e;
+            color: #fff;
+        }
+
+        .copy-btn {
+            flex: 1;
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-dim);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--accent-color);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 600px) {
+            .brief-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div>
+                <h1>📋 CHARACTER BRIEF ULTIMATE</h1>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">장르망라 (현대/판타지/고전/SF) 캐릭터 기획서</p>
+            </div>
+            <div class="doc-id" id="doc-id">REF-2026-000</div>
+        </header>
+
+        <div class="brief-grid">
+            <div class="field-box">
+                <span class="label">1. 소속 세력 & 세계관</span>
+                <div class="value" id="faction">-</div>
+            </div>
+
+            <div class="field-box">
+                <span class="label">2. 클래스 및 전투 메카닉</span>
+                <div class="value" id="role">-</div>
+            </div>
+
+            <div class="field-box full-width">
+                <span class="label">3. 배경 서사 & 캐릭터 기믹</span>
+                <div class="value" id="lore">-</div>
+            </div>
+
+            <div class="field-box">
+                <span class="label">4. Visual Silhouette (실루엣/키워드)</span>
+                <div class="value" id="silhouette">-</div>
+            </div>
+
+            <div class="field-box">
+                <span class="label">5. Main Outfit & Material (의상/재질)</span>
+                <div class="value" id="outfit">-</div>
+            </div>
+
+            <div class="field-box full-width">
+                <span class="label">6. Signature Prop / Weapon (핵심 프랍 & 기용 무기)</span>
+                <div class="value" id="weapon">-</div>
+            </div>
+
+            <div class="field-box full-width">
+                <span class="label">7. 디자인 주의사항 (포인팅 메모)</span>
+                <div class="value" id="note" style="color: #ff7675;">-</div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="generate-btn" onclick="generate()">🎲 전 장르 무작위 기획서 뽑기</button>
+            <button class="copy-btn" onclick="copyToClipboard()">📋 기획서 텍스트 복사</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">기획서 내용이 클립보드에 복사되었습니다!</div>
+
+    <script>
+        const database = {
+            faction: [
+                // [기존 SF/기계/특수 세력]
+                "구도시 지하 정비조합 [스팀펑크/아포칼립스]",
+                "황실 직속 이단심문소 [빅토리아 오컬트]",
+                "상공 연합 메가코프 '아라사카' 특수공작조 [사이버펑크]",
+                "동방 봉라인 봉인 사찰 '천명원' [네오 동양 판타지]",
+                "심해 탐사 조사단 '아비스' [하드 SF / 디젤펑크]",
+                "황야의 용병단 '철혈의 늑대' [서부 개척 / 다크 판타지]",
+                "폐허가 된 거대 방주 내 소리 추적 교단 '무음성 [음향 바이오펑크]",
+                "생체 공학으로 신체를 식물화하는 유목 연맹 '천공수' [플랜트 판타지]",
+                "시간이 정지된 차원 균열 보초대 '아카식 파수꾼' [코스믹 오컬트]",
+                "환각을 다루는 미치광이 유랑 서커스단 '마리오네트' [잔혹 잔혹동화]",
+                "멸망한 고대 문명의 인공지능을 숭배하는 '백색 기계교' [솔라펑크 / 고고학]",
+                "상공 1만 미터 거대 방주 도시의 하층 정비 노동자 연합 [테크노 디젤]",
+                "별의 파편을 매매하는 위성도시의 나이트 스케일러 [네오 노아르]",
+                "영혼을 크리스탈에 봉인하는 유물 복원 협회 '유리눈' [연금술 중세]",
+                "지하 암반 수중 도시의 수경 재배 경찰청 [아쿠아 펑크]",
+                "꿈속 생명체를 잡으러 다니는 드림캐쳐 특무대 [서기 판타지]",
+
+                // [신규 추가: 현대 / 도시 스릴러 / 판타지 / 고전 / 오컬트]
+                "현대 도심 음지에서 활동하는 인디비주얼 퇴마 특수부대 [현대 오컬트]",
+                "대기업 그늘 아래 비밀 작전을 수행하는 사설 민간경호업체(PMC) [현대 밀리터리]",
+                "도심 소음 속에서 귀신을 추적하는 방송국 외주 사운드 엔지니어팀 [현대 미스터리]",
+                "조선 선조 조, 사도세자의 원혼을 차단하는 궁중 비밀 관상/풍수원 [한국 고전]",
+                "삼국시대 백제 몰락 직후 비밀리에 전수되어 온 도력 문파 '소소문' [동양 고전 무협]",
+                "중세 왕국 직속 에메랄드 마법기사단 3연대 [정통 하이 판타지]",
+                "북유럽 설원 속 잊혀진 원시 신을 모시는 '베르세르크 부족' [원시 판타지/신화]",
+                "19세기 산업혁명기 런던 안개 속 연쇄 괴사건을 조사하는 사설 탐정 사무소 [근대 미스터리]",
+                "헤이안 시대 귀족가의 엑소시즘을 전담하던 음양사 가문 [일본 고전 오컬트]",
+                "세계 대전 직후 철학자와 미치광이들이 모인 지하 흑마술 결사단 [근대 오컬트]",
+                "해적 황금기, 사형선고를 받았으나 바다의 신과 계약해 살아돌아간 '유령선단' [해양 판타지]",
+                "상업 도시 국가의 길드를 지배하는 거대 금융 가문 '메디치' 정보원 [르네상스 판타지]"
+            ],
+            role: [
+                // [기존 메카닉]
+                "근접 대형 탱커 (방패 및 중장갑 기용)",
+                "고속 원거리 어싸신 (암습 및 교란 메카닉)",
+                "광역 버프/제어형 서포터 (마도구 및 드론 활용)",
+                "지능형 트랩퍼/저격수 (설치물 및 원거리 타격)",
+                "전열 지속 딜러 (중거리 변형 무기 활용)",
+                "시간 지연/역행 차단용 컨트롤러 (공간 굴곡 및 속도 제어)",
+                "생체 중독 및 환각 유도형 사수인 (화학 물질 및 기화 무기)",
+                "시체/기계 파츠 수거 및 즉석 재조립 딜러 (부품 스택 메카닉)",
+                "체력 소모 기반의 음파 디버퍼 (광역 음향 및 공진 공격)",
+                "중력장 조작을 통한 위치 교란 탱커 (적 위치 강제 이송)",
+                "자기장 반사형 실드 버퍼 (적 원거리 공격 반사 기믹)",
+                "원거리 기생충/포자 유포자 (지속 피해 및 상태 이상 폭발)",
+                "자신의 신체 일부분을 분리해 전장에 배치하는 트릭스터",
+                "투명화 및 광학 위장 전담의 침투 브레이커",
+                "체인지 스탠스형 딜러 (근접 타격 mode / 원거리 방출 mode 변형)",
+
+                // [신규 추가: 현대 / 판타지 / 고전 메카닉]
+                "결계 및 영역 전개형 주술사 (적 행동 제한 및 환영 설치)",
+                "신력(神力) 빙의형 변신 딜러 (근접 동물의 형상으로 전신 강화)",
+                "약초 및 독약 조합형 유틸리티 힐러 (지속 회복 & 중독 유도)",
+                "부적 및 기운을 이용한 원거리 기공 사수 (유도성 영혼 탄환)",
+                "체술 및 보법 중심의 전열 파괴자 (급격한 방향 전환 및 연속 타격)",
+                "대형 고서(마도서) 기반의 대규모 광역 원소 마법사",
+                "대형 십자가/묵주를 활용한 거친 성수 방어기사",
+                "투척용 검 및 와이어를 활용한 공중 속박 딜러",
+                "소환수(사신/정령/귀신)를 조종하는 백그라운드 딜러",
+                "특수 고성능 총기 및 마취탄을 사용하는 현대적 사냥꾼"
+            ],
+            lore: [
+                // [기존 서사]
+                "과거 실험 부작용으로 몸 일부가 결정화되고 있으며, 이를 은폐하기 위해 항상 무거운 제복과 장갑을 착용함.",
+                "겉으로는 점잖은 귀족 유물 상인으로 위장하고 있으나, 밤에는 암시장 거래를 주도하는 정보 브로커.",
+                "전장 폐허에서 주워온 고철로 무기를 스스로 개조해 사용하는 천재 메카닉이자 버려진 아이들의 보호자.",
+                "가문의 몰락으로 복수를 맹세했으나, 신체 개조 여파로 기억을 잃어가는 가련하고 냉혹한 검객.",
+                "신성한 구역을 지키는 관문지기였으나 금단의 마법에 손을 대어 추방당한 고독한 이단자.",
+                "소리를 들을 수 없지만 공기의 진동만으로 상대의 움직임을 100% 예측하는 천재 기사.",
+                "자신의 뇌 일부를 인공지능에 내어주고 시각 대신 360도 스캔 레이더로 세상을 보는 냉혹한 추적자.",
+                "죽은 자의 유품을 만지면 그 순간의 환영을 보는 능력이 있어 극심한 불면증과 환각에 시달리는 수사관.",
+                "체내에 치명적인 독 포자가 기생하고 있어 타인과의 접촉이 절대 불가능한 고독한 방랑자.",
+                "자신이 인간이라 믿고 있지만 사실 멸망 전 인간의 기억이 이식된 고성능 인형 전투병.",
+                "신의 목소리를 듣는 대가로 시력을 잃고, 거대한 쇠사슬로 스스로의 몸을 봉인하고 살아가는 성녀.",
+                "자신의 신체를 서서히 금속 기계로 교체해 나가며 인간성을 잃어가는 것에 공포를 느끼는 테크니션.",
+                "꿈속에서 만난 거대 신성 생명체와 계약하여 불면 상태로 싸우는 어린 몽유병 환자.",
+                "저주받은 가문의 피 때문에 피를 볼 때마다 이성을 잃고 폭주하는 것을 억제 도구로 버티는 자.",
+                "과거 영웅이었으나 모함으로 지하 감옥에 갇혔다 탈출하여, 거대한 죄수 착꼬를 무기로 쓰는 복수귀.",
+
+                // [신규 추가: 현대 / 고전 / 판타지 서사]
+                "유서 깊은 벼슬아치 가문의 막내딸이나, 밤에는 도적들의 두목으로 활동하며 관아의 재물을 털어 가난한 이들에게 나누어 줌.",
+                "어릴 적 원귀에게 신내림을 받았으나 신내림을 거부하고, 원귀들을 억지로 부적 속에 봉인해 무기로 써먹는 악바리 무당.",
+                "현대 대도시의 평범한 택배 기사로 보이지만, 실상은 밤마다 이형의 괴물들을 운반하고 처리하는 비밀 특사.",
+                "전설적인 대장장이인 아버지의 뒤를 이어 마법 검을 제작하지만, 정작 자신은 검술을 전혀 못 해 거대 망치만 휘두르는 원화가.",
+                "왕실의 촉망받는 엘리트 학자였으나, 금서 영역의 주술을 연구하다 눈이 멀고 몸에 먹선 문신이 새겨진 채 쫓겨난 추방자.",
+                "죽은 형의 유품인 현대식 가죽 자켓과 권총을 물려받고, 형의 죽음에 대한 진실을 파헤치는 사설 형사.",
+                "깊은 산속에서 100년 이상 수련하여 인간의 모습을 갖추었으나, 아직 꼬리나 귀를 완벽히 숨기지 못하는 요괴.",
+                "드래곤의 피를 마셔 불사의 신체를 얻었으나, 피부가 서서히 용의 비늘로 변해가며 인간성을 잃어가는 가련한 기사.",
+                "저주받은 숲에 홀로 살며 길 잃은 여행자들을 돌봐주지만, 자신을 공격하는 자들에게는 차가운 자연의 분노를 보여주는 정령사."
+            ],
+            silhouette: [
+                // [기존 실루엣]
+                "상체 강조형 (넓은 어깨, 대형 숄더 아머, 짧은 하의)",
+                "하체 중량형 (롱코트, 대형 무기, 묵직한 부츠 레이어드)",
+                "비대칭 언밸런스 (한쪽 팔/어깨만 비정상적으로 강조된 형태)",
+                "슬림 & 스트림라인 (공기저항을 최소화한 긴 천 재질의 날리는 실루엣)",
+                "X자형 교차 실루엣 (등 뒤의 대형 장비나 날개가 거대한 X자를 이루는 형태)",
+                "극단적 과장형 (몸체는 매우 왜소하나 무기/배낭이 몸의 3배 이상인 대비)",
+                "역삼각형 밸런스 (공중에 떠 있거나 상체 관절이 극단적으로 발달한 구도)",
+                "완전 구형/방어형 (거대한 병풍이나 가변형 장갑이 캐릭터 전체를 감싸는 형태)",
+                "기하학적 직선형 (단단하고 각진 박스 형태의 장갑 및 네모난 숄더 파츠)",
+                "부유물 가득한 공중 실루엣 (캐릭터 주변에 무수한 부속품이 떠 있는 형태)",
+                "몸을 구부린 괴기형 (정상적인 직립이 아닌 짐승처럼 웅크린 기괴한 실루엣)",
+
+                // [신규 추가: 고전/현대/판타지 실루엣]
+                "풍성한 도포/두루마기 실루엣 (바람에 날리는 긴 옷자락과 신비스러운 갓/삿갓 조형)",
+                "수녀/사제 로브 형태 (몸 전체를 가리는 정갈하고 길게 늘어진 종교적 가운)",
+                "현대적 캐주얼 피트 (딱 붙는 가죽 자켓 + 오버사이즈 후드티 레이어드)",
+                "사슬 및 족쇄 실루엣 (몸 전체나 무기에 길게 늘어뜨려진 사슬과 묵직한 철구)",
+                "동양 장군형 웅장함 (화려한 깃털 투구와 어깨를 넓게 커버하는 용머리 견갑)",
+                "허리/골반 강조형 (넓은 오비/대대 띠를 매어 허리 라인을 극도로 강조한 전통 스타일)"
+            ],
+            outfit: [
+                // [기존 의상]
+                "두꺼운 가죽 트렌치코트 + 낡은 테크웨어 밴니지 + 방탄 아머",
+                "개량된 한복 도포 스타일 + 금속 조인트 레그 가드 + 직물 벨트",
+                "맞춤형 스트릿 슈트 + 비닐 재질의 프로텍터 + 롱 로브",
+                "사슬갑옷 레이어드 + 기름때 묻은 작업용 제복 + 오버사이즈 숄더 파츠",
+                "투명한 PVC/비닐 레이어드 + 내부 기계 회로가 드러나는 시스루 소재",
+                "금실로 거대하게 자수 놓인 종교적 로브 + 묵직한 구리/놋쇠 금속 파츠",
+                "기형적으로 붕대를 겹겹이 감은 스타일 + 오염된 생체 조직 질감",
+                "나비/곤충의 날개 재질을 모티프로 한 반투명 홀로그램 패브릭",
+                "거친 타르/기름에 젖은 무거운 모직 코트 + 고글 및 밀폐형 마스크",
+                "전신을 덮는 나노 수트 + 그 위에 거칠게 걸친 찢어진 야상 자켓",
+                "기하학적 백색 도자기(Ceramic) 재질의 아머 + 비단 끈 장식",
+
+                // [신규 추가: 현대/고전/판타지 의상]
+                "먹선으로 화려한 용/호랑이가 그려진 붉은색 비단 쾌자 + 짚신/목화",
+                "현대식 방탄조끼 + 전술 펠트 자켓 + 오버핏 스트릿 파카 레이어드",
+                "화려한 르네상스풍 레이스 드레스 + 정교한 은제 체인메일(사슬갑옷) 혼합",
+                "서양 중세 성기사의 백색 판금 갑옷 + 붉은 융단 망토",
+                "찢어진 삼베 옷 + 몸에 새겨진 먹선 부적 문신 + 대나무 삿갓",
+                "단정한 현대식 비즈니스 슈트 + 손에 감은 반투명 주술용 붕대",
+                "동물 가죽 및 뼈 장식이 결합된 털 가죽 로브 + 룬 문자가 새겨진 벨트"
+            ],
+            weapon: [
+                // [기존 무기]
+                "자력으로 조립/분해되는 접이식 대형 메카닉 대검",
+                "에테르 에너지 라인이 노출되어 있는 중형 에너지 개틀링",
+                "룬 문자가 각인되어 반짝이는 3쌍의 부유식 단검 및 조종 장갑",
+                "증기 압축 기믹이 내장된 고중량 파일벙커(File Bunker)",
+                "거대한 거문고/체로 형태를 한 음파 진동 파쇄포",
+                "액체 금속이 수시로 형태를 바꾸는 채찍 겸 가시창",
+                "살아있는 생체 심장이 박혀 있는 유기물 기공 총기",
+                "자신의 그림자를 실체화하여 조종하는 앤티크한 펜/창 형태의 촉매",
+                "의료용 대형 주사기 및 가스 분사관이 결합된 연금술 투척기",
+                "거대한 오르골 톱니바퀴 형상의 원형 회전 톱날",
+                "부유하는 4개의 태양광 렌즈 단편 (빛을 모아 레이저 발사)",
+                "등 뒤에 짊어진 거대한 은제 종(Bell)과 이를 치는 철퇴",
+
+                // [신규 추가: 현대/고전/판타지 무기]
+                "화려한 문양이 새겨진 동양식 환도(環刀) 및 부적 묶음",
+                "거대한 사인검(四寅劍) - 액운을 쫓는 주문이 붉은 글씨로 새겨진 대검",
+                "소염기가 개조된 현대식 소형 리볼버 권총 2자루",
+                "은빛 마력이 감도는 길다란 마법 지팡이(Ornate Staff) 및 마법 구체",
+                "거대한 철퇴(Flail) 끝에 은제 향로가 달려 연기를 피우는 무기",
+                "바람을 일으키는 대형 접이식 철척 부채(鐵扇)",
+                "현대 도심용 사냥을 위해 개조된 고성능 컴파운드 크로스보우(석궁)",
+                "붉은 실로 묶인 무수히 많은 경전 종이 및 대형 붓"
+            ],
+            note: [
+                // [기존 노하우 및 팁]
+                "★ SD/3D 모델링 시 무기 비율이 지나치게 가벼워 보이지 않도록 하단 무게중심 설정 필요.",
+                "★ 캐릭터 인게임 시인성을 위해 캐릭터 머리 뒤쪽/어깨 파츠에 발광(Glow) 포인트 필수 배치.",
+                "★ 겉보기에는 정갈해 보이나 스킬 사용 시 내부의 기계 장치/마도구가 노출되는 기믹 구현 필요.",
+                "★ 3D 리소스 재활용을 고려하여 아머 파츠는 탈부착이 가능한 구조로 레이어링 디자인 요청.",
+                "★ 흔한 서양 판타지/사이버펑크 클리셰를 피하기 위해 색상 팔레트에서 메인 컬러 1개는 파스텔톤/이질적 색상 채용 권장.",
+                "★ 캐릭터의 전면 뿐만 아니라 3D 뷰를 고려하여 '등 뒤(Back View)'의 시각적 재미요소(백팩, 리본, 관절부) 필수 설계.",
+                "★ 대사 및 모션 기믹 표현을 위해 '얼굴 마스크/안대'는 탈부착 가능하거나 텍스처 변경이 쉬운 구조로 배치.",
+                "★ 포트폴리오용 원화 시트 작성 시, 기용된 무기의 변형(Transform) 애니메이션 단계별 가이드 필수 포함 요청.",
+                "★ 캐릭터가 장착한 소형 프랍(약병, 열쇠, 부적 등)의 세부 묘사 줌인 컷(Detail Cut) 추가 구성 요구.",
+                "★ 3D 뼈대(Rigging) 충돌을 방지하기 위해 허리/골반 주변의 펄럭이는 천은 최대 2레이어 이하로 제한하여 실무성 어필.",
+
+                // [신규 추가: 장르별 실무 디자인 팁]
+                "★ [동양/한국 고전] 복식이 너무 고증에만 매몰되지 않도록 현대적 가죽 벨트나 기하학적 파츠를 30% 혼합하여 퓨전 느낌 강조.",
+                "★ [현대물] 자칫 평범해질 수 있는 일반 사복 차림에 특이한 인게임 오브젝트(부적, 특수 이어폰, 광학 고글)를 시그니처로 추가.",
+                "★ [정통 판타지] 갑옷 파츠 질감 표현 시 지나치게 깨끗한 금속보다는 전장의 흠집(Weathering) 및 마법 룬 문자의 발광 표현 어필.",
+                "★ [오컬트/잔혹] 캐릭터의 시각적 그로테스크함이 너무 과해 호불호가 갈리지 않도록 미형의 얼굴과 그로테스크한 장비 간의 대조(Contrast) 형성."
+            ]
+        };
+
+        function getRandomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function generate() {
+            const keys = ['faction', 'role', 'lore', 'silhouette', 'outfit', 'weapon', 'note'];
+            
+            // Random Doc ID
+            document.getElementById('doc-id').innerText = `REF-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            keys.forEach(key => {
+                const elem = document.getElementById(key);
+                const parentBox = elem.parentElement;
+                
+                parentBox.classList.remove('roll');
+                void parentBox.offsetWidth;
+                parentBox.classList.add('roll');
+
+                elem.innerText = getRandomElement(database[key]);
+            });
+        }
+
+        function copyToClipboard() {
+            const faction = document.getElementById('faction').innerText;
+            if (faction === '-') return;
+
+            const textToCopy = `[게임 캐릭터 디자인 기획서]\n` +
+                `- 소속/세계관: ${faction}\n` +
+                `- 역할/메카닉: ${document.getElementById('role').innerText}\n` +
+                `- 캐릭터 서사: ${document.getElementById('lore').innerText}\n` +
+                `- 실루엣 방침: ${document.getElementById('silhouette').innerText}\n` +
+                `- 의상/재질: ${document.getElementById('outfit').innerText}\n` +
+                `- 핵심 무기: ${document.getElementById('weapon').innerText}\n` +
+                `- 기획 전달사항: ${document.getElementById('note').innerText}`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const toast = document.getElementById('toast');
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        }
+
+        window.onload = generate;
+    </script>
+</body>
+</html>
