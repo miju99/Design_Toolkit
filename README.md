@@ -13,7 +13,7 @@
 <div align="center">
   
 ---
-#### [타임 버퍼 플래너 미리보기]<br>
+#### [워크스페이스 미리보기]<br>
 <table>
   <tr>
     <td valign="top" align="center">
